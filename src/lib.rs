@@ -160,7 +160,8 @@ where
         [(); usize_count(M)]: Sized,
     {
         for i in 0..N {
-            if (i < M && (other.get(i).unwrap() || !self.get(i).unwrap())) || (self.get(i).unwrap())
+            if (i < M && (!other.get(i).unwrap()  && self.get(i).unwrap()))
+                || (i >= M && self.get(i).unwrap())
             {
                 return false;
             }
@@ -215,10 +216,9 @@ where
 {
     type Output = StackBitSet<N>;
 
-    fn add(self, other: $t) -> StackBitSet<N> {
-        let mut res = self.clone();
-        res.data[0] |= other as usize;
-        res
+    fn add(mut self, other: $t) -> StackBitSet<N> {
+        self.set(other as usize).unwrap();
+        self
     }
 }
     )*)
@@ -235,10 +235,9 @@ where
 {
     type Output = StackBitSet<N>;
 
-    fn sub(self, other: $t) -> StackBitSet<N> {
-        let mut res = self.clone();
-        res.data[0] &= !(other as usize);
-        res
+    fn sub(mut self, other: $t) -> StackBitSet<N> {
+        self.reset(other as usize).unwrap();
+        self
     }
 }
     )*)
@@ -273,5 +272,35 @@ mod tests {
         assert!(!a.is_equal(&b));
         b.set(12).unwrap();
         assert!(a.is_equal(&b));
+    }
+
+    #[test]
+    fn union() {
+        let mut a: StackBitSet<42> = StackBitSet::new();
+        let mut b: StackBitSet<69> = StackBitSet::new();
+        a.set(12).unwrap();
+        b.set(29).unwrap();
+        let mut c: StackBitSet<37> = StackBitSet::new();
+        c.set(12).unwrap();
+        c.set(29).unwrap();
+        assert!(c.is_equal(&(a.union(&b))));
+        assert!(a.is_subset(&c));
+        assert!(b.is_subset(&c));
+        let d: StackBitSet<93> = StackBitSet::new();
+        assert!((c.intersection(&a)).intersection(&b).is_equal(&d));
+    }
+
+    #[test]
+    fn subset() {
+        let mut a: StackBitSet<42> = StackBitSet::new();
+        let mut b: StackBitSet<69> = StackBitSet::new();
+        a.set(12).unwrap();
+        b.set(12).unwrap();
+        b.set(29).unwrap();
+
+        assert!(a.is_subset(&b));
+        assert!(!b.is_subset(&a));
+        assert!(b.is_superset(&a));
+        assert!(!b.is_equal(&a));
     }
 }
