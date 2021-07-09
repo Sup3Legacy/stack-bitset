@@ -160,7 +160,7 @@ where
         [(); usize_count(M)]: Sized,
     {
         for i in 0..N {
-            if (i < M && (!other.get(i).unwrap()  && self.get(i).unwrap()))
+            if (i < M && (!other.get(i).unwrap() && self.get(i).unwrap()))
                 || (i >= M && self.get(i).unwrap())
             {
                 return false;
@@ -202,7 +202,7 @@ where
 {
     type Output = StackBitSet<{ const_min(N, M) }>;
 
-    fn add(self, other: &StackBitSet<M>) -> StackBitSet<{ const_min(N, M) }> {
+    fn add(self, other: &StackBitSet<M>) -> Self::Output {
         self.union(other)
     }
 }
