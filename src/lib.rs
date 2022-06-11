@@ -47,6 +47,15 @@ where
     data: [usize; usize_count(N)],
 }
 
+impl<const N: usize> Default for StackBitSet<N> 
+where
+    [(); usize_count(N)]: Sized,
+{
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl<const N: usize> StackBitSet<N>
 where
     [(); usize_count(N)]: Sized,
@@ -71,25 +80,27 @@ where
     }
     pub fn set(&mut self, idx: usize) -> Result<(), StackBitSetError> {
         if idx < N {
-            Ok(self.set_unchecked(idx))
+            self.set_unchecked(idx);
+            Ok(())
         } else {
             Err(StackBitSetError::IndexOutOfBounds)
         }
     }
     fn set_unchecked(&mut self, idx: usize) {
         let chunk = unsafe { self.data.get_unchecked_mut(idx / USIZE_BITS) };
-        *chunk = *chunk | (1 << (idx % USIZE_BITS))
+        *chunk |= 1 << (idx % USIZE_BITS)
     }
     pub fn reset(&mut self, idx: usize) -> Result<(), StackBitSetError> {
         if idx < N {
-            Ok(self.reset_unchecked(idx))
+            self.reset_unchecked(idx);
+            Ok(())
         } else {
             Err(StackBitSetError::IndexOutOfBounds)
         }
     }
     fn reset_unchecked(&mut self, idx: usize) {
         let chunk = unsafe { self.data.get_unchecked_mut(idx / USIZE_BITS) };
-        *chunk = *chunk & !(1 << (idx % USIZE_BITS))
+        *chunk &= !(1 << (idx % USIZE_BITS))
     }
 }
 
