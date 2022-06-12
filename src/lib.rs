@@ -11,7 +11,7 @@ pub enum StackBitSetError {
     IndexOutOfBounds,
 }
 
-/// Computes the number of `usize` needed for a bitset of `n` elements.
+/// Computes the number of `usize` chunks needed for a bitset of `n` elements.
 pub const fn usize_count(n: usize) -> usize {
     (n / USIZE_BITS) + if n % USIZE_BITS == 0 { 0 } else { 1 }
 }
@@ -69,7 +69,7 @@ where
 
     /// Returns whether the elements at index `idx` in the bitset is set
     pub fn get(&self, idx: usize) -> Result<bool, StackBitSetError> {
-        if let Some(chunk) = self.data.get(idx / USIZE_BITS) {
+        if let Some(chunk) = self.data.get(idx / USIZE_BITS).filter(|_| idx < N) {
             Ok(chunk & (1 << (idx % USIZE_BITS)) != 0)
         } else {
             Err(StackBitSetError::IndexOutOfBounds)
@@ -78,7 +78,7 @@ where
 
     /// sets the elements at index `idx` in the bitset
     pub fn set(&mut self, idx: usize) -> Result<(), StackBitSetError> {
-        if let Some(chunk) = self.data.get_mut(idx / USIZE_BITS) {
+        if let Some(chunk) = self.data.get_mut(idx / USIZE_BITS).filter(|_| idx < N) {
             *chunk |= 1 << (idx % USIZE_BITS);
             Ok(())
         } else {
@@ -88,7 +88,7 @@ where
 
     /// Resets the element at index `idx` in the bitset
     pub fn reset(&mut self, idx: usize) -> Result<(), StackBitSetError> {
-        if let Some(chunk) = self.data.get_mut(idx / USIZE_BITS) {
+        if let Some(chunk) = self.data.get_mut(idx / USIZE_BITS).filter(|_| idx < N) {
             *chunk &= !(1 << (idx % USIZE_BITS));
             Ok(())
         } else {

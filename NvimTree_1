@@ -1,0 +1,8 @@
+~/Documents/Projets/stack-bitset/..
+  .git/
+  src/
+     lib.rs
+   .gitignore
+   Cargo.toml
+   LICENSE
+   README.md
