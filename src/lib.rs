@@ -47,7 +47,7 @@ where
     data: [usize; usize_count(N)],
 }
 
-impl<const N: usize> Default for StackBitSet<N> 
+impl<const N: usize> Default for StackBitSet<N>
 where
     [(); usize_count(N)]: Sized,
 {
@@ -60,47 +60,40 @@ impl<const N: usize> StackBitSet<N>
 where
     [(); usize_count(N)]: Sized,
 {
-    // Creates new bitset
+    /// Create a new empty instance of the bitset
     pub fn new() -> Self {
         StackBitSet {
             data: [0usize; usize_count(N)],
         }
     }
+
+    /// Returns whether the elements at index `idx` in the bitset is set
     pub fn get(&self, idx: usize) -> Result<bool, StackBitSetError> {
-        if idx < N {
-            Ok(self.get_unchecked(idx))
+        if let Some(chunk) = self.data.get(idx / USIZE_BITS) {
+            Ok(chunk & (1 << (idx % USIZE_BITS)) != 0)
         } else {
             Err(StackBitSetError::IndexOutOfBounds)
         }
     }
-    fn get_unchecked(&self, idx: usize) -> bool {
-        let chunk = self.data[idx / USIZE_BITS];
-        // ! Make sure this is the right cast
-        chunk & (1 << (idx % USIZE_BITS)) != 0
-    }
+
+    /// sets the elements at index `idx` in the bitset
     pub fn set(&mut self, idx: usize) -> Result<(), StackBitSetError> {
-        if idx < N {
-            self.set_unchecked(idx);
+        if let Some(chunk) = self.data.get_mut(idx / USIZE_BITS) {
+            *chunk |= 1 << (idx % USIZE_BITS);
             Ok(())
         } else {
             Err(StackBitSetError::IndexOutOfBounds)
         }
     }
-    fn set_unchecked(&mut self, idx: usize) {
-        let chunk = unsafe { self.data.get_unchecked_mut(idx / USIZE_BITS) };
-        *chunk |= 1 << (idx % USIZE_BITS)
-    }
+
+    /// Resets the element at index `idx` in the bitset
     pub fn reset(&mut self, idx: usize) -> Result<(), StackBitSetError> {
-        if idx < N {
-            self.reset_unchecked(idx);
+        if let Some(chunk) = self.data.get_mut(idx / USIZE_BITS) {
+            *chunk &= !(1 << (idx % USIZE_BITS));
             Ok(())
         } else {
             Err(StackBitSetError::IndexOutOfBounds)
         }
-    }
-    fn reset_unchecked(&mut self, idx: usize) {
-        let chunk = unsafe { self.data.get_unchecked_mut(idx / USIZE_BITS) };
-        *chunk &= !(1 << (idx % USIZE_BITS))
     }
 }
 
