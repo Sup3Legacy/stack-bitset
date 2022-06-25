@@ -56,6 +56,49 @@ where
     }
 }
 
+pub struct StackBitSetIterator<'a, const N: usize>
+where
+    [(); usize_count(N)]: Sized,
+{
+    index: usize,
+    limit: usize,
+    bitset: &'a StackBitSet<N>,
+}
+
+impl<'a, const N: usize> StackBitSetIterator<'a, N>
+where
+    [(); usize_count(N)]: Sized,
+{
+    pub fn new(bitset: &'a StackBitSet<N>) -> Self {
+        Self::new_limit(bitset, N)
+    }
+
+    pub fn new_limit(bitset: &'a StackBitSet<N>, limit: usize) -> Self {
+        Self {
+            index: 0,
+            limit,
+            bitset,
+        }
+    }
+}
+
+impl<'a, const N: usize> Iterator for StackBitSetIterator<'a, N>
+where
+    [(); usize_count(N)]: Sized,
+{
+    type Item = usize;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        for i in self.index..const_min(N, self.limit) {
+            if self.bitset.get(i).unwrap() {
+                self.index = i + 1;
+                return Some(i);
+            }
+        }
+        None
+    }
+}
+
 impl<const N: usize> StackBitSet<N>
 where
     [(); usize_count(N)]: Sized,
@@ -65,6 +108,14 @@ where
         StackBitSet {
             data: [0usize; usize_count(N)],
         }
+    }
+
+    pub fn iter(&self) -> StackBitSetIterator<N> {
+        StackBitSetIterator::new(self)
+    }
+
+    pub fn iter_limit(&self, limit: usize) -> StackBitSetIterator<N> {
+        StackBitSetIterator::new_limit(self, limit)
     }
 
     /// Returns whether the elements at index `idx` in the bitset is set
@@ -107,10 +158,8 @@ where
         [(); usize_count(const_min(N, M))]: Sized,
     {
         let mut res = StackBitSet::new();
-        for i in 0..(const_min(N, M)) {
-            if self.get(i).unwrap() || other.get(i).unwrap() {
-                res.set(i).unwrap();
-            }
+        for i in self.iter_limit(M).chain(other.iter_limit(N)) {
+            res.set(i).unwrap();
         }
         res
     }
@@ -123,8 +172,8 @@ where
         [(); usize_count(const_min(N, M))]: Sized,
     {
         let mut res = StackBitSet::new();
-        for i in 0..(const_min(N, M)) {
-            if self.get(i).unwrap() && other.get(i).unwrap() {
+        for i in self.iter_limit(M) {
+            if other.get(i).unwrap() {
                 res.set(i).unwrap();
             }
         }
