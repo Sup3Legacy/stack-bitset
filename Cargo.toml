@@ -1,6 +1,6 @@
 [package]
 name = "stack-bitset"
-version = "0.2.0"
+version = "0.2.5"
 authors = ["Constantin Gierczak--Galle <constantin.gierczak-galle@ens.fr>"]
 edition = "2018"
 repository = "https://github.com/Sup3Legacy/stack-bitset"
